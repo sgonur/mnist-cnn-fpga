@@ -10,11 +10,16 @@ help:
 	@echo "make bitstream  full Vivado build -> build/out/$(TOP).bit"
 	@echo "make clean      delete generated files"
 
+# pytest exits 5 when it finds no tests; treat that as a pass for an empty repo.
 test:
-	pytest tests/ -v
+	pytest tests/ -v $(PYTEST_ARGS); rc=$$?; [ $$rc -eq 5 ] && echo "No tests yet." && exit 0; exit $$rc
 
 lint:
+ifeq ($(strip $(HDL)),)
+	@echo "No HDL in src/hdl yet, nothing to lint."
+else
 	verilator --lint-only -Wall -Isrc/hdl --top-module $(TOP) $(HDL)
+endif
 
 project:
 	mkdir -p build

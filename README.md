@@ -42,8 +42,9 @@ The scripts refuse to run on any other version, because a mismatch rewrites IP a
 ## Workflow
 
 1. Branch off `main`: `git switch -c feature/uart-tx`
-2. Write the module in `src/hdl/` and its test in `tests/test_<module>.py`
-   (copy `tests/test_counter.py` as a template).
+2. Write the module in `src/hdl/` and its test in `tests/test_<module>.py`.
+   Each test file contains the `@cocotb.test()` coroutines plus one plain pytest
+   function that builds and runs them with `cocotb_tools.runner.get_runner("icarus")`.
 3. `make lint && make test` until green.
 4. Open a pull request. CI runs lint and all cocotb tests; a teammate reviews.
 5. Squash-merge once CI passes.
