@@ -1,0 +1,43 @@
+# Vivado project + outputs (recreated by scripts/)
+build/
+.Xil/
+*.jou
+*.log
+*.str
+*.pb
+*.wdb
+*.backup.*
+webtalk*
+usage_statistics_webtalk.*
+*.cache/
+*.gen/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+
+# Vivado IP: keep only the .xci in src/ip/<name>/
+src/ip/*/*
+!src/ip/*/*.xci
+
+# Bitstreams: share via GitHub Releases, not commits
+*.bit
+*.bin
+*.xsa
+*.ltx
+
+# cocotb / simulation
+sim_build/
+results.xml
+*.result.xml
+test-results.xml
+*.vcd
+*.fst
+*.ghw
+__pycache__/
+.pytest_cache/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
