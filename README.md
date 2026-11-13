@@ -7,8 +7,8 @@ RTL is written in Verilog and verified with **cocotb** on open-source simulators
 |---|---|---|
 | Simulate / test | cocotb + Icarus Verilog | `make test` |
 | Lint | Verilator | `make lint` |
-| Open in Vivado | Vivado 2025.1 | `make project` |
-| Bitstream | Vivado 2025.1 (batch) | `make bitstream` → `build/out/top.bit` |
+| Open in Vivado | Vivado 2023.2 | `make project` |
+| Bitstream | Vivado 2023.2 (batch) | `make bitstream` → `build/out/top.bit` |
 
 ## Layout
 
