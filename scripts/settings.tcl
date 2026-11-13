@@ -1,6 +1,6 @@
 # Single source of truth for project settings. Edit these, nothing else.
 
-set VIVADO_VERSION "2025.1"            ;# everyone must use exactly this version
+set VIVADO_VERSION "2023.2"            ;# everyone must use exactly this version
 set PROJ_NAME      "fpga_project"
 set PART           "xc7a35tcpg236-1"   ;# Basys 3 placeholder, change to your board
 set TOP            "top"

@@ -13,9 +13,9 @@ RTL is written in Verilog and verified with **cocotb** on open-source simulators
 ## Layout
 
 ```
-src/hdl/            Verilog sources (one module per file)
-src/constraints/    .xdc files
-src/ip/<name>/      Vivado IP, .xci only (optional)
+src/                Verilog sources (one module per file)
+constraints/        .xdc files
+ip/<name>/          Vivado IP, .xci only (optional)
 tests/              cocotb tests, one test_<module>.py per module
 scripts/            settings.tcl (part, top, Vivado version), create_project.tcl, build.tcl
 build/              generated Vivado project + outputs (gitignored, safe to delete)
@@ -42,7 +42,7 @@ The scripts refuse to run on any other version, because a mismatch rewrites IP a
 ## Workflow
 
 1. Branch off `main`: `git switch -c feature/uart-tx`
-2. Write the module in `src/hdl/` and its test in `tests/test_<module>.py`.
+2. Write the module in `src/` and its test in `tests/test_<module>.py`.
    Each test file contains the `@cocotb.test()` coroutines plus one plain pytest
    function that builds and runs them with `cocotb_tools.runner.get_runner("icarus")`.
 3. `make lint && make test` until green.
@@ -61,7 +61,7 @@ tagged with the commit (e.g. `v0.3.0`). The build fails if timing is not met.
 
 ## Adding Vivado IP
 
-Create the IP in the GUI with its location set to `src/ip/<ip_name>/`, and turn off
+Create the IP in the GUI with its location set to `ip/<ip_name>/`, and turn off
 "core container". Commit only the `.xci`; `create_project.tcl` regenerates the rest.
 Note that cocotb can't simulate Xilinx IP on Icarus, so keep IP at the edges of the
 design (clocking, memories) and test the logic around it.

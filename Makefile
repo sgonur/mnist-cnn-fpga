@@ -1,4 +1,4 @@
-HDL := $(wildcard src/hdl/*.v src/hdl/*.sv)
+HDL := $(wildcard src/*.v src/*.sv)
 TOP ?= top
 
 .PHONY: help test lint waves project bitstream clean
@@ -16,9 +16,9 @@ test:
 
 lint:
 ifeq ($(strip $(HDL)),)
-	@echo "No HDL in src/hdl yet, nothing to lint."
+	@echo "No HDL in src/ yet, nothing to lint."
 else
-	verilator --lint-only -Wall -Isrc/hdl --top-module $(TOP) $(HDL)
+	verilator --lint-only -Wall -Isrc --top-module $(TOP) $(HDL)
 endif
 
 project:
