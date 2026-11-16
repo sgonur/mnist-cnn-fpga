@@ -2,8 +2,6 @@ module conv1
   #(
     // This is the number of pixels in each line of the image
      parameter  linewidth_px_p = 28
-    // This is the width of each input pixel. You will use 8 for part 2.
-    // We will only change it to help with debugging (so that 0 to 4 * 480 can be represented without overflow)
     ,parameter width_p = 8)
    (input [0:0] clk_i
     ,input [0:0] reset_i
@@ -13,143 +11,105 @@ module conv1
     ,output [0:0] valid_o
     ,input [0:0] ready_i
     // Just to make our lives easy, we're going to double the output width.
-    ,output [(2 * width_p) - 1 : 0] data_o
+    ,output [(2 * width_p) - 1 : 0] data1_o
+    ,output [(2 * width_p) - 1 : 0] data2_o
     );
 
-   // Elastic State Machine Logic
-   logic                        valid_r;
-   wire                         enable_w;
-   assign enable_w = valid_i & ready_o;
+//*---------------------------------------------------------
+// Module Name: conv1
+// Designed by: Kailan Bugata
+// Description: This module implements the first convlutional layer of the CNN. It takes in a stream of images pixels with each entering data_i at valid_i and ready_o. The module consists of several RAM delay buffers which all connect to a 5x5 sliding window. One data_i first enters the module, a counter starts counting from 0 to 25. For each number in the counter, a specific entry of the slding window and BRAM memory, which is holding the weight data is inputted into a MAC8_16 module. The output of the MAC8_16 module is then inputted into a enable controlled DFF. At ready_i and valid_o, the output of the DFF is then added with the bias and inputted into a ReLU module. The output of the ReLU module is then outputted to data_o. The module will output two data_o signals for both of the filters in this convolution layer. 
+//*---------------------------------------------------------
 
-   assign ready_o = ~valid_o | ready_i;
-
-   always_ff @(posedge clk_i) begin
-      if (reset_i) begin
-         valid_r <= 1'b0;
-      end else if (ready_o) begin
-         valid_r <= enable_w;
-      end
-   end
-   assign valid_o = valid_r;
-
-   // This looks like a massive 1-D shift register, and it is.
-   // But conceptually, it is implementing a 2-D line buffer:
-   
-   // 3-register, partial Line 2 <-- Oldest line, being shifted out.
-   // Line 1
-   // Line 0 <-- Newest line, being shifted in
+//TODO: Add counter, BRAM logic(figure out if we are doing 1 or 2 BRAMs for the weights), MAC logic, DFF logic, bias addition logic, and ReLU logic. Figure out ready valid logic.
 
 
-   //my logic attempt
 
-  logic [$clog2(linewidth_px_p)-1:0] r_cntr_q, r_cntr_d;
+// Elastic State Machine Logic
+//REPLACE LATER, JUST A PLACEHOLDER FOR NOW!!!!
+logic                        valid_r;
+wire                         enable_w;
+assign enable_w = valid_i & ready_o;
 
-  always_comb begin
-    r_cntr_d = r_cntr_q;
+assign ready_o = ~valid_o | ready_i;
 
-    if(enable_w) begin
-      if(r_cntr_q == (linewidth_px_p-1)) begin
-        r_cntr_d = '0;
-      end else begin
-      r_cntr_d = r_cntr_q+1;
-      end
-    end
+always_ff @(posedge clk_i) begin
+  if (reset_i) begin
+      valid_r <= 1'b0;
+  end else if (ready_o) begin
+      valid_r <= enable_w;
   end
+end
+assign valid_o = valid_r;
+
+wire [width_p-1:0] ram0_out, ram1_out, ram2_out, ram3_out;
+
+delaybuffer #(
+.width_p(width_p),
+.delay_p(linewidth_px_p - 1)
+) delay1
+(
+.clk_i(clk_i),
+.reset_i(reset_i),
+.valid_i(enable_w), //valid_i condition will change. We dont want to enable the delay buffer until the MAC is ready to output data. This is because the MAC will output data every 25 cycles and we don't want to fuck up the window.
+.data_i(data_i),
+.ready_i(1'b1),
+.ready_o(),
+.valid_o(),
+.data_o(ram0_out)
+);
 
 
-  always_ff @ (posedge clk_i) begin
-    if(reset_i) begin
-      r_cntr_q <= '0;
-    end else begin
-      r_cntr_q <= r_cntr_d;
-    end
-  end
+delaybuffer #(
+.width_p(width_p),
+.delay_p(linewidth_px_p - 1)
+) delay2
+(
+.clk_i(clk_i),
+.reset_i(reset_i),
+.valid_i(enable_w),
+.data_i(ram0_out),
+.ready_i(1'b1),
+.ready_o(),
+.valid_o(),
+.data_o(ram1_out)
+);
+
+delaybuffer #(
+.width_p(width_p),
+.delay_p(linewidth_px_p - 1)
+) delay3
+(
+.clk_i(clk_i),
+.reset_i(reset_i),
+.valid_i(enable_w),
+.data_i(ram1_out),
+.ready_i(1'b1),
+.ready_o(),
+.valid_o(),
+.data_o(ram2_out)
+);
+
+delaybuffer #(
+.width_p(width_p),
+.delay_p(linewidth_px_p - 1)
+) delay4
+(
+.clk_i(clk_i),
+.reset_i(reset_i),
+.valid_i(enable_w),
+.data_i(ram2_out),
+.ready_i(1'b1),
+.ready_o(),
+.valid_o(),
+.data_o(ram3_out)
+);
+
+//Sliding window construction
+logic [width_p-1:0] window_w [4:0][4:0];
 
 
-  wire [width_p-1:0] ram0_out, ram1_out, ram2_out, ram3_out, ram4_out;
-
-  delaybuffer #(
-   .width_p(width_p),
-   .delay_p(linewidth_px_p - 1)
-  ) delay1
-  (
-    .clk_i(clk_i),
-    .reset_i(reset_i),
-    .valid_i(enable_w),
-    .data_i(data_i),
-    .ready_i(1'b1),
-    .ready_o(),
-    .valid_o(),
-    .data_o(ram0_out)
-  );
-
-
-  delaybuffer #(
-   .width_p(width_p),
-   .delay_p(linewidth_px_p - 1)
-  ) delay2
-  (
-    .clk_i(clk_i),
-    .reset_i(reset_i),
-    .valid_i(enable_w),
-    .data_i(ram0_out),
-    .ready_i(1'b1),
-    .ready_o(),
-    .valid_o(),
-    .data_o(ram1_out)
-  );
-
-  delaybuffer #(
-   .width_p(width_p),
-   .delay_p(linewidth_px_p - 1)
-  ) delay3
-  (
-    .clk_i(clk_i),
-    .reset_i(reset_i),
-    .valid_i(enable_w),
-    .data_i(ram1_out),
-    .ready_i(1'b1),
-    .ready_o(),
-    .valid_o(),
-    .data_o(ram2_out)
-  );
-
-  delaybuffer #(
-   .width_p(width_p),
-   .delay_p(linewidth_px_p - 1)
-  ) delay4
-  (
-    .clk_i(clk_i),
-    .reset_i(reset_i),
-    .valid_i(enable_w),
-    .data_i(ram2_out),
-    .ready_i(1'b1),
-    .ready_o(),
-    .valid_o(),
-    .data_o(ram3_out)
-  );
-
-  delaybuffer #(
-   .width_p(width_p),
-   .delay_p(linewidth_px_p - 1)
-  ) delay5
-  (
-    .clk_i(clk_i),
-    .reset_i(reset_i),
-    .valid_i(enable_w),
-    .data_i(ram3_out),
-    .ready_i(1'b1),
-    .ready_o(),
-    .valid_o(),
-    .data_o(ram4_out)
-  );
-
-   // Okay, now that the buffer is constructed, let us make the sliding window.
-   logic [width_p-1:0] window_w [4:0][4:0];
-
-
-
-   // Make 25 individual wires
+// Make 25 individual wires
 logic [width_p-1:0] window24;
 logic [width_p-1:0] window23;
 logic [width_p-1:0] window22;
@@ -172,11 +132,10 @@ logic [width_p-1:0] window9;
 logic [width_p-1:0] window8;
 logic [width_p-1:0] window7;
 logic [width_p-1:0] window6;
-
 logic [width_p-1:0] window5;
+
 logic [width_p-1:0] window4;
 logic [width_p-1:0] window3;
-
 logic [width_p-1:0] window2;
 logic [width_p-1:0] window1;
 logic [width_p-1:0] window0;
@@ -213,67 +172,53 @@ assign window3 = window_w[4][3];
 assign window4 = window_w[4][4];
 
 
+//oldest data
+//[0][4] , [0][3], [0][2], [0][1], [0][0]
+//[1][4] , [1][3], [1][2], [1][1], [1][0]
+//[2][4] , [2][3], [2][2], [2][1], [2][0]
+//[3][4] , [3][3], [3][2], [3][1], [3][0]
+//[4][4] , [4][3], [4][2], [4][1], [4][0]
+//                                 newest data
+//window_w is the 5x5 matrix kernel
 
-   //[0][4] , [0][3], [0][2], [0][1], [0][0]
-   //[1][4] , [1][3], [1][2], [1][1], [1][0]
-   //[2][4] , [2][3], [2][2], [2][1], [2][0]
-   //[3][4] , [3][3], [3][2], [3][1], [3][0]
-   //[4][4] , [4][3], [4][2], [4][1], [4][0]
-   //window_w is the 5x5 matrix kernel
+// Five pixels from the "oldest" line.
 
-   // Five pixels from the "oldest" line.
+always_ff @(posedge clk_i) begin
+  if(reset_i) begin
+  end
+  if(enable_w) begin //will need the same condition as valid_i in the ram delay buffer
+    window_w[0][4] <= window_w[0][3];
+    window_w[0][3] <= window_w[0][2];
+    window_w[0][2] <= window_w[0][1];
+    window_w[0][1] <= window_w[0][0];
+    window_w[0][0] <= ram4_out;
 
-   always_ff @(posedge clk_i) begin
-    if(reset_i) begin
-      // for(int i = 0; i < 3; i++) begin
-      //    for(int j = 0; j < 3; j++) begin
-      //       window_w[i][j] <= '0;
-      //    end
-      // end
-    end
-    if(enable_w) begin
-      window_w[0][4] <= window_w[0][3];
-      window_w[0][3] <= window_w[0][2];
-      window_w[0][2] <= window_w[0][1];
-      window_w[0][1] <= window_w[0][0];
-      window_w[0][0] <= ram4_out;
+  // Five pixels from the "middle" line.
+    window_w[1][4] <= window_w[1][3];
+    window_w[1][3] <= window_w[1][2];
+    window_w[1][2] <= window_w[1][1];
+    window_w[1][1] <= window_w[1][0];
+    window_w[1][0] <= ram3_out;
 
-    // Five pixels from the "middle" line.
-      window_w[1][4] <= window_w[1][3];
-      window_w[1][3] <= window_w[1][2];
-      window_w[1][2] <= window_w[1][1];
-      window_w[1][1] <= window_w[1][0];
-      window_w[1][0] <= ram3_out;
+  // Five pixels from the "newest" line.
+    window_w[2][4] <= window_w[2][3];
+    window_w[2][3] <= window_w[2][2];
+    window_w[2][2] <= window_w[2][1];
+    window_w[2][1] <= window_w[2][0];
+    window_w[2][0] <= ram2_out;
 
-    // Five pixels from the "newest" line.
-      window_w[2][4] <= window_w[2][3];
-      window_w[2][3] <= window_w[2][2];
-      window_w[2][2] <= window_w[2][1];
-      window_w[2][1] <= window_w[2][0];
-      window_w[2][0] <= ram2_out;
+    window_w[3][4] <= window_w[3][3];
+    window_w[3][3] <= window_w[3][2];
+    window_w[3][2] <= window_w[3][1];
+    window_w[3][1] <= window_w[3][0];
+    window_w[3][0] <= ram1_out;
 
-      window_w[3][4] <= window_w[3][3];
-      window_w[3][3] <= window_w[3][2];
-      window_w[3][2] <= window_w[3][1];
-      window_w[3][1] <= window_w[3][0];
-      window_w[3][0] <= ram1_out;
+    window_w[4][4] <= window_w[4][3];
+    window_w[4][3] <= window_w[4][2];
+    window_w[4][2] <= window_w[4][1];
+    window_w[4][1] <= window_w[4][0];
+    window_w[4][0] <= data_i;
+  end
+end
 
-      window_w[4][4] <= window_w[4][3];
-      window_w[4][3] <= window_w[4][2];
-      window_w[4][2] <= window_w[4][1];
-      window_w[4][1] <= window_w[4][0];
-      window_w[4][0] <= data_i;
-    end
-   end
-
-   
-    
-
-
-   // For the purposes of this module, add them all together.
-   assign data_o = '0 + (window_w[4][4] + window_w[4][3] + window_w[4][2] + window_w[4][1] + window_w[4][0]) +
-                   (window_w[3][4] + window_w[3][3] + window_w[3][2] + window_w[3][1] + window_w[3][0]) +
-                   (window_w[2][4] + window_w[2][3] + window_w[2][2] + window_w[2][1] + window_w[2][0]) +
-                   (window_w[1][4] + window_w[1][3] + window_w[1][2] + window_w[1][1] + window_w[1][0]) +
-                   (window_w[0][4] + window_w[0][3] + window_w[0][2] + window_w[0][1] + window_w[0][0]);
 endmodule
