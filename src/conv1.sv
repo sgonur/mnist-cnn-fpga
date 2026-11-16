@@ -66,7 +66,7 @@ module conv1
   end
 
 
-  wire [width_p-1:0] ram0_out, ram1_out;
+  wire [width_p-1:0] ram0_out, ram1_out, ram2_out, ram3_out, ram4_out;
 
   delaybuffer #(
    .width_p(width_p),
@@ -99,12 +99,76 @@ module conv1
     .data_o(ram1_out)
   );
 
+  delaybuffer #(
+   .width_p(width_p),
+   .delay_p(linewidth_px_p - 1)
+  ) delay3
+  (
+    .clk_i(clk_i),
+    .reset_i(reset_i),
+    .valid_i(enable_w),
+    .data_i(ram1_out),
+    .ready_i(1'b1),
+    .ready_o(),
+    .valid_o(),
+    .data_o(ram2_out)
+  );
+
+  delaybuffer #(
+   .width_p(width_p),
+   .delay_p(linewidth_px_p - 1)
+  ) delay4
+  (
+    .clk_i(clk_i),
+    .reset_i(reset_i),
+    .valid_i(enable_w),
+    .data_i(ram2_out),
+    .ready_i(1'b1),
+    .ready_o(),
+    .valid_o(),
+    .data_o(ram3_out)
+  );
+
+  delaybuffer #(
+   .width_p(width_p),
+   .delay_p(linewidth_px_p - 1)
+  ) delay5
+  (
+    .clk_i(clk_i),
+    .reset_i(reset_i),
+    .valid_i(enable_w),
+    .data_i(ram3_out),
+    .ready_i(1'b1),
+    .ready_o(),
+    .valid_o(),
+    .data_o(ram4_out)
+  );
+
    // Okay, now that the buffer is constructed, let us make the sliding window.
-   logic [width_p-1:0] window_w [2:0][2:0];
+   logic [width_p-1:0] window_w [4:0][4:0];
 
 
 
-   // Make 9 individual wires
+   // Make 25 individual wires
+logic [width_p-1:0] window24;
+logic [width_p-1:0] window23;
+logic [width_p-1:0] window22;
+logic [width_p-1:0] window21;
+logic [width_p-1:0] window20;
+
+logic [width_p-1:0] window19;
+logic [width_p-1:0] window18;
+logic [width_p-1:0] window17;
+logic [width_p-1:0] window16;
+logic [width_p-1:0] window15;
+
+logic [width_p-1:0] window14;
+logic [width_p-1:0] window13;
+logic [width_p-1:0] window12;
+logic [width_p-1:0] window11;
+logic [width_p-1:0] window10;
+
+logic [width_p-1:0] window9;
 logic [width_p-1:0] window8;
 logic [width_p-1:0] window7;
 logic [width_p-1:0] window6;
@@ -118,26 +182,46 @@ logic [width_p-1:0] window1;
 logic [width_p-1:0] window0;
 
 // Connect them to the array
-assign window6 = window_w[0][0];
-assign window7 = window_w[0][1];
-assign window8 = window_w[0][2];
+assign window20 = window_w[0][0];
+assign window21 = window_w[0][1];
+assign window22 = window_w[0][2];
+assign window23 = window_w[0][3];
+assign window24 = window_w[0][4];
 
-assign window3 = window_w[1][0];
-assign window4 = window_w[1][1];
-assign window5 = window_w[1][2];
+assign window15 = window_w[1][0];
+assign window16 = window_w[1][1];
+assign window17 = window_w[1][2];
+assign window18 = window_w[1][3];
+assign window19 = window_w[1][4];
 
-assign window0 = window_w[2][0];
-assign window1 = window_w[2][1];
-assign window2 = window_w[2][2];
+assign window10 = window_w[2][0];
+assign window11 = window_w[2][1];
+assign window12 = window_w[2][2];
+assign window13 = window_w[2][3];
+assign window14 = window_w[2][4];
+
+assign window5 = window_w[3][0];
+assign window6 = window_w[3][1];
+assign window7 = window_w[3][2];
+assign window8 = window_w[3][3];
+assign window9 = window_w[3][4];
+
+assign window0 = window_w[4][0];
+assign window1 = window_w[4][1];
+assign window2 = window_w[4][2];
+assign window3 = window_w[4][3];
+assign window4 = window_w[4][4];
 
 
 
-   //[0][2] , [0][1], [0][0]
-   //[1][2] , [1][1], [1][0]
-   //[2][2] , [2][1], [2][0]
-   //window_w is the 3x3 matrix kernel
+   //[0][4] , [0][3], [0][2], [0][1], [0][0]
+   //[1][4] , [1][3], [1][2], [1][1], [1][0]
+   //[2][4] , [2][3], [2][2], [2][1], [2][0]
+   //[3][4] , [3][3], [3][2], [3][1], [3][0]
+   //[4][4] , [4][3], [4][2], [4][1], [4][0]
+   //window_w is the 5x5 matrix kernel
 
-   // Three pixels from the "oldest" line.
+   // Five pixels from the "oldest" line.
 
    always_ff @(posedge clk_i) begin
     if(reset_i) begin
@@ -148,26 +232,48 @@ assign window2 = window_w[2][2];
       // end
     end
     if(enable_w) begin
+      window_w[0][4] <= window_w[0][3];
+      window_w[0][3] <= window_w[0][2];
       window_w[0][2] <= window_w[0][1];
       window_w[0][1] <= window_w[0][0];
-      window_w[0][0] <= ram1_out;
+      window_w[0][0] <= ram4_out;
 
-    // Three pixels from the "middle" line.
+    // Five pixels from the "middle" line.
+      window_w[1][4] <= window_w[1][3];
+      window_w[1][3] <= window_w[1][2];
       window_w[1][2] <= window_w[1][1];
       window_w[1][1] <= window_w[1][0];
-      window_w[1][0] <= ram0_out;
+      window_w[1][0] <= ram3_out;
 
-    // Three pixels from the "newest" line.
+    // Five pixels from the "newest" line.
+      window_w[2][4] <= window_w[2][3];
+      window_w[2][3] <= window_w[2][2];
       window_w[2][2] <= window_w[2][1];
       window_w[2][1] <= window_w[2][0];
-      window_w[2][0] <= data_i;
+      window_w[2][0] <= ram2_out;
+
+      window_w[3][4] <= window_w[3][3];
+      window_w[3][3] <= window_w[3][2];
+      window_w[3][2] <= window_w[3][1];
+      window_w[3][1] <= window_w[3][0];
+      window_w[3][0] <= ram1_out;
+
+      window_w[4][4] <= window_w[4][3];
+      window_w[4][3] <= window_w[4][2];
+      window_w[4][2] <= window_w[4][1];
+      window_w[4][1] <= window_w[4][0];
+      window_w[4][0] <= data_i;
     end
    end
+
+   
     
 
 
    // For the purposes of this module, add them all together.
-   assign data_o = '0 + (window_w[2][2] + window_w[2][1] + window_w[2][0]) +
-                   (window_w[1][2] + window_w[1][1] + window_w[1][0]) +
-                   (window_w[0][2] + window_w[0][1] + window_w[0][0]);
+   assign data_o = '0 + (window_w[4][4] + window_w[4][3] + window_w[4][2] + window_w[4][1] + window_w[4][0]) +
+                   (window_w[3][4] + window_w[3][3] + window_w[3][2] + window_w[3][1] + window_w[3][0]) +
+                   (window_w[2][4] + window_w[2][3] + window_w[2][2] + window_w[2][1] + window_w[2][0]) +
+                   (window_w[1][4] + window_w[1][3] + window_w[1][2] + window_w[1][1] + window_w[1][0]) +
+                   (window_w[0][4] + window_w[0][3] + window_w[0][2] + window_w[0][1] + window_w[0][0]);
 endmodule

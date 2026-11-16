@@ -1,0 +1,23 @@
+conv1 bias:
+// Scale factor (float): 167.81983947753906
+// Max original value: 0.7567639350891113
+
+conv1 weight:
+// Scale factor (float): 180.06103515625
+// Max original value: 0.7053163647651672
+
+conv2 bias:
+// Scale factor (float): 520.8185424804688
+// Max original value: 0.24384692311286926
+
+conv2 weight:
+// Scale factor (float): 104.17247772216797
+// Max original value: 1.2191319465637207
+
+fc bias:
+// Scale factor (float): 1142.0045166015625
+// Max original value: 0.11120796203613281
+
+fc weight:
+// Scale factor (float): 109.42500305175781
+// Max original value: 1.1606122255325317
