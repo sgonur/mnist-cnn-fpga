@@ -1,5 +1,5 @@
 `ifndef BINPATH
- `define BINPATH "src/weights/"
+ `define BINPATH "/src/weights/"
 `endif
 module ram_2r1w_sync
   #(parameter [31:0] width_p = 8
@@ -29,7 +29,7 @@ module ram_2r1w_sync
       $display("%m: depth_p is %d, width_p is %d", depth_p, width_p);
       // wire [bar:0] foo [baz:0];
       if(init_p) begin // if init_p is 1, use readmemh
-         $readmemh({`HEXPATH, filename_p},mem , 0, depth_p-1);
+         $readmemh(filename_p,mem , 0, depth_p-1);
       end
       // In order to get the memory contents in iverilog you need to run this for loop during initialization:
       for (int i = 0; i < depth_p; i++) begin

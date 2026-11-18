@@ -25,12 +25,12 @@ module conv1
 
 typedef enum logic [0:0] {
     IDLE  = 1'b0,
-    COUNTING  = 1'b1,
-} state;
+    COUNTING  = 1'b1
+} state_t;
 
-state state_d, state_q;
+state_t state_d, state_q;
 
-logic [$clog2(25) - 1 : 0] counter_d, counter_q;
+logic [$clog2(50) - 1 : 0] counter_d, counter_q;
 //Counter logic for reading from Mem, handling all pixels going thru MAC
 always_comb begin
   state_d = state_q;
@@ -51,6 +51,16 @@ always_comb begin
       end
     end
   endcase
+end
+
+always_ff @(posedge clk_i) begin
+  if(reset_i) begin
+    state_q <= IDLE;
+    counter_q <= '0;
+  end else begin
+    state_q <= state_d;
+    counter_q <= counter_d;
+  end
 end
 
 wire [width_p-1:0] ram0_out, ram1_out, ram2_out, ram3_out;
@@ -117,7 +127,7 @@ delaybuffer #(
 );
 
 //Sliding window construction (treat as a packed array so easier to iterate thru them for MAC)
-logic [width_p-1:0] window_w [24:0]
+logic [width_p-1:0] window_w [24:0];
 
 
 // Make 25 individual wires
@@ -188,34 +198,37 @@ assign window4 = window_w[4];
 
 always_ff @(posedge clk_i) begin
   if(reset_i) begin
+    for(int i = 0; i < 25; i++) begin
+      window_w[i] <= '0;
+    end
   end
-  if(counter_q == 24) begin //will need the same condition as valid_i in the ram delay buffer
+  if(valid_i & ready_o) begin //will need the same condition as valid_i in the ram delay buffer
 
   // Five pixels from the oldest line.
     window_w[24] <= window_w[23];
     window_w[23] <= window_w[22];
     window_w[22] <= window_w[21];
     window_w[21] <= window_w[20];
-    window_w[20] <= ram4_out;
+    window_w[20] <= ram3_out;
 
   // Five pixels from the next line.
     window_w[19] <= window_w[18];
     window_w[18] <= window_w[17];
     window_w[17] <= window_w[16];
     window_w[16] <= window_w[15];
-    window_w[15] <= ram3_out;
+    window_w[15] <= ram2_out;
 
     window_w[14] <= window_w[13];
     window_w[13] <= window_w[12];
     window_w[12] <= window_w[11];
     window_w[11] <= window_w[10];
-    window_w[10] <= ram2_out;
+    window_w[10] <= ram1_out;
 
     window_w[9] <= window_w[8];
     window_w[8] <= window_w[7];
     window_w[7] <= window_w[6];
     window_w[6] <= window_w[5];
-    window_w[5] <= ram1_out;
+    window_w[5] <= ram0_out;
 
   // Five pixels from the "newest" line.
     window_w[4] <= window_w[3];
@@ -232,8 +245,9 @@ logic signed [width_p-1:0] filterweight1_o, filterweight2_o;
 //dual read port RAM
 ram_2r1w_sync #(
 .width_p(width_p),
-.depth_p(linewidth_px_p - 1),
-.filename_p("conv1_weight.mem")
+.depth_p(50),
+.filename_p("conv1_weight.mem"),
+.init_p(1)
 ) WeightRam
 (
 .clk_i(clk_i),
@@ -244,7 +258,7 @@ ram_2r1w_sync #(
 .rd_valid1_i(1'b1),
 .rd_valid2_i(1'b1),
 .rd_addr1_i(counter_q),
-.rd_addr2_i(counter_q + 25),
+.rd_addr2_i(counter_q + 5'd25),
 .rd_data1_o(filterweight1_o),
 .rd_data2_o(filterweight2_o)
 );
@@ -259,7 +273,7 @@ logic signed [(2 * width_p) - 1 : 0] pipelineDFF1_o, pipelineDFF2_o;
 
 MAC8_16 MAC1 (
 .clk_i(clk_i),
-.reset_i(reset_i),
+.reset_i(reset_i | (ready_o & valid_i)), 
 .data_i(window_w[counter_q]),
 .weight_i(filterweight1_o),
 .mac_o(mac1_o)
@@ -267,7 +281,7 @@ MAC8_16 MAC1 (
 
 MAC8_16 MAC2 (
 .clk_i(clk_i),
-.reset_i(reset_i),
+.reset_i(reset_i | (ready_o & valid_i)),
 .data_i(window_w[counter_q]),
 .weight_i(filterweight2_o),
 .mac_o(mac2_o)

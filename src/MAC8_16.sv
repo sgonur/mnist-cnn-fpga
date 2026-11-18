@@ -30,4 +30,6 @@ always_ff @(posedge clk_i) begin
   end
 end
 
+assign mac_o = accumulator_q;
+
 endmodule
