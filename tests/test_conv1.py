@@ -7,7 +7,7 @@ import random
 import cocotb
 import pytest
 
-from common import param, run_cocotb, run_stream, start_clock_and_reset
+from common import param, run_cocotb, run_stream, start_clock_and_reset, to_signed
 from cocotb.clock import Clock
 from cocotb.utils import get_sim_time
 from cocotb.triggers import Timer, ClockCycles, RisingEdge, FallingEdge, with_timeout, First
@@ -47,35 +47,37 @@ async def test_conv1_readyvalid(dut):
       dut.valid_i.value = 0
       await RisingEdge(dut.valid_o)
       await RisingEdge(clk_i)
+      await Timer(100, unit="ps") #for good measure
+
 
       #reference MAC calculation for filter1
-      mac_sum += int(dut.window0.value) * 0x96
-      print(f"window0: {hex(dut.window0.value)}")
-      mac_sum += int(dut.window1.value) * 0x90
-      mac_sum += int(dut.window2.value) * 0x97
-      mac_sum += int(dut.window3.value) * 0xab
-      mac_sum += int(dut.window4.value) * 0x12
-      mac_sum += int(dut.window5.value) * 0xf3
-      mac_sum += int(dut.window6.value) * 0xde
-      mac_sum += int(dut.window7.value) * 0xe8
-      mac_sum += int(dut.window8.value) * 0xe1
-      mac_sum += int(dut.window9.value) * 0xfc
-      mac_sum += int(dut.window10.value) * 0x32
-      mac_sum += int(dut.window11.value) * 0xf6
-      mac_sum += int(dut.window12.value) * 0x08
-      mac_sum += int(dut.window13.value) * 0x00
-      mac_sum += int(dut.window14.value) * 0x16
-      mac_sum += int(dut.window15.value) * 0x43
-      mac_sum += int(dut.window16.value) * 0x21
-      mac_sum += int(dut.window17.value) * 0x01
-      mac_sum += int(dut.window18.value) * 0x36
-      mac_sum += int(dut.window19.value) * 0x58
-      mac_sum += int(dut.window20.value) * 0x03
-      mac_sum += int(dut.window21.value) * 0x11
-      mac_sum += int(dut.window22.value) * 0x5c
-      mac_sum += int(dut.window23.value) * 0x62
-      mac_sum += int(dut.window24.value) * 0x4d
-      mac_sum += 0x60 #bias
+      mac_sum += int(dut.window0.value) * to_signed(0x96, 8)
+      mac_sum += int(dut.window1.value) * to_signed(0x90, 8)
+      mac_sum += int(dut.window2.value) * to_signed(0x97, 8)
+      mac_sum += int(dut.window3.value) * to_signed(0xab, 8)
+      mac_sum += int(dut.window4.value) * to_signed(0x12, 8)
+      mac_sum += int(dut.window5.value) * to_signed(0xf3, 8)
+      mac_sum += int(dut.window6.value) * to_signed(0xde, 8)
+      mac_sum += int(dut.window7.value) * to_signed(0xe8, 8)
+      mac_sum += int(dut.window8.value) * to_signed(0xe1, 8)
+      mac_sum += int(dut.window9.value) * to_signed(0xfc, 8)
+      mac_sum += int(dut.window10.value) * to_signed(0x32, 8)
+      mac_sum += int(dut.window11.value) * to_signed(0xf6, 8)
+      mac_sum += int(dut.window12.value) * to_signed(0x08, 8)
+      mac_sum += int(dut.window13.value) * to_signed(0x00, 8)
+      mac_sum += int(dut.window14.value) * to_signed(0x16, 8)
+      mac_sum += int(dut.window15.value) * to_signed(0x43, 8)
+      mac_sum += int(dut.window16.value) * to_signed(0x21, 8)
+      mac_sum += int(dut.window17.value) * to_signed(0x01, 8)
+      mac_sum += int(dut.window18.value) * to_signed(0x36, 8)
+      mac_sum += int(dut.window19.value) * to_signed(0x58, 8)
+      mac_sum += int(dut.window20.value) * to_signed(0x03, 8)
+      mac_sum += int(dut.window21.value) * to_signed(0x11, 8)
+      mac_sum += int(dut.window22.value) * to_signed(0x5c, 8)
+      mac_sum += int(dut.window23.value) * to_signed(0x62, 8)
+      mac_sum += int(dut.window24.value) * to_signed(0x4d, 8)
+      mac_sum += to_signed(0x0060, 16) #bias
+      print(f"mac_sum: {mac_sum}")
       if(mac_sum < 0):
         mac_sum = 0
       assert dut.data1_o.value == mac_sum, f"Output mismatch: expected {mac_sum}, got {int(dut.data1_o.value)} at time {get_sim_time('ns')} ns"
