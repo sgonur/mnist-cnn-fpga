@@ -8,7 +8,7 @@ module conv1
     ,input [0:0] valid_i
     ,output [0:0] ready_o
     ,input [width_p - 1 : 0] data_i
-    ,output [0:0] valid_o
+    ,output logic [0:0] valid_o
     ,input [0:0] ready_i
     // Just to make our lives easy, we're going to double the output width.
     ,output [20 : 0] data1_o
@@ -21,7 +21,7 @@ module conv1
 // Description: This module implements the first convlutional layer of the CNN. It takes in a stream of images pixels with each entering data_i at valid_i and ready_o. The module consists of several RAM delay buffers which all connect to a 5x5 sliding window. One data_i first enters the module, a counter starts counting from 0 to 25. For each number in the counter, a specific entry of the slding window and BRAM memory, which is holding the weight data is inputted into a MAC8_16 module. The output of the MAC8_16 module is then inputted into a enable controlled DFF. At ready_i and valid_o, the output of the DFF is then added with the bias and inputted into a ReLU module. The output of the ReLU module is then outputted to data_o. The module will output two data_o signals for both of the filters in this convolution layer. 
 //*---------------------------------------------------------
 
-//TODO: Figure out padding? pass testbench.
+//TODO: Figure out padding?
 
 typedef enum logic [0:0] {
     IDLE  = 1'b0,
@@ -266,7 +266,15 @@ ram_2r1w_sync #(
 
 
 assign ready_o = (state_q == IDLE);
-assign valid_o = (counter_q == 24);
+//assign valid_o = (counter_q == 24);
+always_ff @(posedge clk_i) begin
+  if(reset_i) begin
+    valid_o <= 0;
+  end else begin
+    valid_o <= (counter_q == 24);
+  end
+end
+
 
 logic signed [20 : 0] mac1_o, mac2_o;
 logic signed [20 : 0] pipelineDFF1_o, pipelineDFF2_o;
@@ -297,19 +305,22 @@ always_ff @(posedge clk_i) begin
   end
 end
 
-
 //for testing purposes, dont use ReLU untl mac and conv1 works (and dont add bias)
-assign data1_o = pipelineDFF1_o; // + 16'h0060
-assign data2_o = pipelineDFF2_o + 16'h007F;
+// assign data1_o = pipelineDFF1_o; + 21'h0060;
+// assign data2_o = pipelineDFF2_o + 21'h007F;
 
-// ReLU ReLU1 (
-// .data_i(pipelineDFF1_o + 16'h0060), //adding the bias
-// .data_o(data1_o)
-// );
+ReLU 
+#(.width_p(21))
+ReLU1 (
+.data_i(pipelineDFF1_o + 21'h60), //adding the bias
+.data_o(data1_o)
+);
 
-// ReLU ReLU2 (
-// .data_i(pipelineDFF2_o + 16'h007F), //adding the bias
-// .data_o(data2_o)
-// );
+ReLU 
+#(.width_p(21))
+ReLU2 (
+.data_i(pipelineDFF2_o + 21'h7F), //adding the bias
+.data_o(data2_o)
+);
 
 endmodule
