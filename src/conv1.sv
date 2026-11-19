@@ -21,7 +21,7 @@ module conv1
 // Description: This module implements the first convlutional layer of the CNN. It takes in a stream of images pixels with each entering data_i at valid_i and ready_o. The module consists of several RAM delay buffers which all connect to a 5x5 sliding window. One data_i first enters the module, a counter starts counting from 0 to 25. For each number in the counter, a specific entry of the slding window and BRAM memory, which is holding the weight data is inputted into a MAC8_16 module. The output of the MAC8_16 module is then inputted into a enable controlled DFF. At ready_i and valid_o, the output of the DFF is then added with the bias and inputted into a ReLU module. The output of the ReLU module is then outputted to data_o. The module will output two data_o signals for both of the filters in this convolution layer. 
 //*---------------------------------------------------------
 
-//TODO: Add counter, BRAM logic(figure out if we are doing 1 or 2 BRAMs for the weights), MAC logic, DFF logic, bias addition logic, and ReLU logic. Figure out ready valid logic.
+//TODO: Figure out padding? pass testbench.
 
 typedef enum logic [0:0] {
     IDLE  = 1'b0,
