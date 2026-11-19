@@ -46,10 +46,10 @@ async def test_conv1_readyvalid(dut):
       await RisingEdge(clk_i)
       dut.valid_i.value = 0
       await with_timeout(FallingEdge(dut.ready_o),1000,'ns')
-      print(f"window0: {dut.window0.value}, filterweight1: {dut.filterweight1_o.value}")
+      print(f"window0: {int(dut.window0.value)}, filterweight1: {to_signed(int(dut.filterweight1_o.value),8)}")
       await RisingEdge(dut.valid_o)
       await RisingEdge(clk_i)
-      await Timer(100, unit="ps") #for good measure
+      await Timer(1000, unit="ps") #for good measure
 
       #with test.mem
 
@@ -88,7 +88,7 @@ async def test_conv1_readyvalid(dut):
 
       #reference MAC calculation for filter1
       mac_sum += int(dut.window0.value) * to_signed(0x96, 8)
-      print(f"mac_sum after window0: {mac_sum}")
+      print(f"mac_sum after window0: {mac_sum}. window0: {int(dut.window0.value)}")
       mac_sum += int(dut.window1.value) * to_signed(0x90, 8)
       print(f"mac_sum after window1: {mac_sum}")
       mac_sum += int(dut.window2.value) * to_signed(0x97, 8)
@@ -120,22 +120,10 @@ async def test_conv1_readyvalid(dut):
       mac_sum += int(dut.window24.value) * to_signed(0x4d, 8)
       #mac_sum += to_signed(0x0060, 16) #bias
       print(f"mac_sum: {mac_sum}")
-      actual_val = to_signed(int(dut.data1_o.value), 16)
+      actual_val = to_signed(int(dut.data1_o.value), 21)
       assert actual_val == mac_sum, f"Output mismatch: expected {mac_sum}, got {actual_val} at time {get_sim_time('ns')} ns"
       print(f"Successful pass: {mac_sum}, i= {i}")
 
-
-
-
-
-            
-            
-        
-
-    
-
-
-    
 
 
 
