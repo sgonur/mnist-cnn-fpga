@@ -13,7 +13,7 @@ from cocotb.utils import get_sim_time
 from cocotb.triggers import Timer, ClockCycles, RisingEdge, FallingEdge, with_timeout, First
 from cocotb.types import LogicArray, Range
 
-SOURCES = ["conv1.sv", "delaybuffer.sv", "elastic.sv", "ram_1r1w_sync.sv", "ReLU.sv","MAC8_16.sv","ram_2r1w_sync.sv"]
+SOURCES = ["conv1.sv", "delaybuffer.sv", "elastic.sv", "ram_1r1w_sync.sv", "ReLU.sv","MAC8_21.sv","ram_2r1w_sync.sv"]
 
 
 
@@ -45,18 +45,60 @@ async def test_conv1_readyvalid(dut):
       dut.valid_i.value = 1
       await RisingEdge(clk_i)
       dut.valid_i.value = 0
+      await with_timeout(FallingEdge(dut.ready_o),1000,'ns')
+      print(f"window0: {dut.window0.value}, filterweight1: {dut.filterweight1_o.value}")
       await RisingEdge(dut.valid_o)
       await RisingEdge(clk_i)
       await Timer(100, unit="ps") #for good measure
 
+      #with test.mem
+
+      # mac_sum += int(dut.window0.value) * to_signed(0x01, 8)
+      # print(f"mac_sum after window0: {mac_sum}")
+      # mac_sum += int(dut.window1.value) * to_signed(0x02, 8)
+      # print(f"mac_sum after window1: {mac_sum}")
+      # mac_sum += int(dut.window2.value) * to_signed(0x03, 8)
+      # print(f"mac_sum after window2: {mac_sum}")
+      # mac_sum += int(dut.window3.value) * to_signed(0x04, 8)
+      # print(f"mac_sum after window3: {mac_sum}")
+      # mac_sum += int(dut.window4.value) * to_signed(0x05, 8)
+      # print(f"mac_sum after window4: {mac_sum}")
+      # mac_sum += int(dut.window5.value) * to_signed(0x06, 8)
+      # print(f"mac_sum after window5: {mac_sum}")
+      # mac_sum += int(dut.window6.value) * to_signed(0x07, 8)
+      # mac_sum += int(dut.window7.value) * to_signed(0x08, 8)
+      # mac_sum += int(dut.window8.value) * to_signed(0x09, 8)
+      # mac_sum += int(dut.window9.value) * to_signed(0x0A, 8)
+      # mac_sum += int(dut.window10.value) * to_signed(0x0B, 8)
+      # mac_sum += int(dut.window11.value) * to_signed(0x0C, 8)
+      # mac_sum += int(dut.window12.value) * to_signed(0x0D, 8)
+      # mac_sum += int(dut.window13.value) * to_signed(0x0E, 8)
+      # mac_sum += int(dut.window14.value) * to_signed(0x0F, 8)
+      # mac_sum += int(dut.window15.value) * to_signed(0x10, 8)
+      # mac_sum += int(dut.window16.value) * to_signed(0x11, 8)
+      # mac_sum += int(dut.window17.value) * to_signed(0x12, 8)
+      # mac_sum += int(dut.window18.value) * to_signed(0x13, 8)
+      # mac_sum += int(dut.window19.value) * to_signed(0x14, 8)
+      # mac_sum += int(dut.window20.value) * to_signed(0x15, 8)
+      # mac_sum += int(dut.window21.value) * to_signed(0x16, 8)
+      # mac_sum += int(dut.window22.value) * to_signed(0x17, 8)
+      # mac_sum += int(dut.window23.value) * to_signed(0x18, 8)
+      # mac_sum += int(dut.window24.value) * to_signed(0x19, 8)
+
 
       #reference MAC calculation for filter1
       mac_sum += int(dut.window0.value) * to_signed(0x96, 8)
+      print(f"mac_sum after window0: {mac_sum}")
       mac_sum += int(dut.window1.value) * to_signed(0x90, 8)
+      print(f"mac_sum after window1: {mac_sum}")
       mac_sum += int(dut.window2.value) * to_signed(0x97, 8)
+      print(f"mac_sum after window2: {mac_sum}")
       mac_sum += int(dut.window3.value) * to_signed(0xab, 8)
+      print(f"mac_sum after window3: {mac_sum}")
       mac_sum += int(dut.window4.value) * to_signed(0x12, 8)
+      print(f"mac_sum after window4: {mac_sum}")
       mac_sum += int(dut.window5.value) * to_signed(0xf3, 8)
+      print(f"mac_sum after window5: {mac_sum}")
       mac_sum += int(dut.window6.value) * to_signed(0xde, 8)
       mac_sum += int(dut.window7.value) * to_signed(0xe8, 8)
       mac_sum += int(dut.window8.value) * to_signed(0xe1, 8)
@@ -76,11 +118,11 @@ async def test_conv1_readyvalid(dut):
       mac_sum += int(dut.window22.value) * to_signed(0x5c, 8)
       mac_sum += int(dut.window23.value) * to_signed(0x62, 8)
       mac_sum += int(dut.window24.value) * to_signed(0x4d, 8)
-      mac_sum += to_signed(0x0060, 16) #bias
+      #mac_sum += to_signed(0x0060, 16) #bias
       print(f"mac_sum: {mac_sum}")
-      if(mac_sum < 0):
-        mac_sum = 0
-      assert dut.data1_o.value == mac_sum, f"Output mismatch: expected {mac_sum}, got {int(dut.data1_o.value)} at time {get_sim_time('ns')} ns"
+      actual_val = to_signed(int(dut.data1_o.value), 16)
+      assert actual_val == mac_sum, f"Output mismatch: expected {mac_sum}, got {actual_val} at time {get_sim_time('ns')} ns"
+      print(f"Successful pass: {mac_sum}, i= {i}")
 
 
 

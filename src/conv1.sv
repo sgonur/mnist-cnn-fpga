@@ -11,8 +11,8 @@ module conv1
     ,output [0:0] valid_o
     ,input [0:0] ready_i
     // Just to make our lives easy, we're going to double the output width.
-    ,output [(2 * width_p) - 1 : 0] data1_o
-    ,output [(2 * width_p) - 1 : 0] data2_o
+    ,output [20 : 0] data1_o
+    ,output [20 : 0] data2_o
     );
 
 //*---------------------------------------------------------
@@ -257,8 +257,8 @@ ram_2r1w_sync #(
 .wr_addr_i('0),
 .rd_valid1_i(1'b1),
 .rd_valid2_i(1'b1),
-.rd_addr1_i(counter_q),
-.rd_addr2_i(counter_q + 5'd25),
+.rd_addr1_i(counter_d),
+.rd_addr2_i(counter_d + 5'd25),
 .rd_data1_o(filterweight1_o),
 .rd_data2_o(filterweight2_o)
 );
@@ -268,10 +268,10 @@ ram_2r1w_sync #(
 assign ready_o = (state_q == IDLE);
 assign valid_o = (counter_q == 24);
 
-logic signed [(2 * width_p) - 1 : 0] mac1_o, mac2_o;
-logic signed [(2 * width_p) - 1 : 0] pipelineDFF1_o, pipelineDFF2_o;
+logic signed [20 : 0] mac1_o, mac2_o;
+logic signed [20 : 0] pipelineDFF1_o, pipelineDFF2_o;
 
-MAC8_16 MAC1 (
+MAC8_21 MAC1 (
 .clk_i(clk_i),
 .reset_i(reset_i | (ready_o & valid_i)), 
 .data_i(window_w[counter_q]),
@@ -279,7 +279,7 @@ MAC8_16 MAC1 (
 .mac_o(mac1_o)
 );
 
-MAC8_16 MAC2 (
+MAC8_21 MAC2 (
 .clk_i(clk_i),
 .reset_i(reset_i | (ready_o & valid_i)),
 .data_i(window_w[counter_q]),
@@ -297,14 +297,19 @@ always_ff @(posedge clk_i) begin
   end
 end
 
-ReLU ReLU1 (
-.data_i(pipelineDFF1_o + 16'h0060), //adding the bias
-.data_o(data1_o)
-);
 
-ReLU ReLU2 (
-.data_i(pipelineDFF2_o + 16'h007F), //adding the bias
-.data_o(data2_o)
-);
+//for testing purposes, dont use ReLU untl mac and conv1 works (and dont add bias)
+assign data1_o = pipelineDFF1_o; // + 16'h0060
+assign data2_o = pipelineDFF2_o + 16'h007F;
+
+// ReLU ReLU1 (
+// .data_i(pipelineDFF1_o + 16'h0060), //adding the bias
+// .data_o(data1_o)
+// );
+
+// ReLU ReLU2 (
+// .data_i(pipelineDFF2_o + 16'h007F), //adding the bias
+// .data_o(data2_o)
+// );
 
 endmodule
