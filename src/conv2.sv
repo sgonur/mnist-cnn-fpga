@@ -12,9 +12,9 @@ module conv2
     ,output logic [0:0] valid_o
     ,input [0:0] ready_i
     // Just to make our lives easy, we're going to double the output width.
-    ,output [20 : 0] data1_o
-    ,output [20 : 0] data2_o
-    ,output [20 : 0] data3_o
+    ,output signed [21 : 0] data1_o
+    ,output signed [21 : 0] data2_o
+    ,output signed [21 : 0] data3_o
     );
 
 //*---------------------------------------------------------
@@ -182,6 +182,10 @@ assign window1_8 = window1_w[8];
 
 always_ff @(posedge clk_i) begin
   if(reset_i) begin
+    for(int i = 0; i < 9; i++) begin
+      window1_w[i] <= '0;
+      window2_w[i] <= '0;
+    end
   end
   if(valid_i & ready_o) begin //will need the same condition as valid_i in the ram delay buffer
 
@@ -375,21 +379,21 @@ end
 // assign data2_o = pipelineDFF2_o + 21'h00b5;
 // assign data3_o = pipelineDFF3_o + 21'h0081;
 
-ReLU #(.width_p(21))
+ReLU #(.width_p(22))
 ReLU1 (
-.data_i(pipelineDFF1_o + 21'h00fb), //adding the bias
+.data_i(pipelineDFF1_o + 22'h00fb), //adding the bias
 .data_o(data1_o)
 );
 
-ReLU #(.width_p(21))
+ReLU #(.width_p(22))
 ReLU2 (
-.data_i(pipelineDFF2_o + 21'h00b5), //adding the bias
+.data_i(pipelineDFF2_o + 22'h00b5), //adding the bias
 .data_o(data2_o)
 );
 
-ReLU #(.width_p(21))
+ReLU #(.width_p(22))
 ReLU3 (
-.data_i(pipelineDFF3_o + 21'h0081), //adding the bias
+.data_i(pipelineDFF3_o + 22'h0081), //adding the bias
 .data_o(data3_o)
 );
 

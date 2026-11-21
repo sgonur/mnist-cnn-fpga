@@ -143,6 +143,40 @@ async def test_conv1_readyvalid(dut):
       assert actual_val2 == mac_sum2, f"Filter 1 Output mismatch: expected {mac_sum2}, got {actual_val2} at time {get_sim_time('ns')} ns"
       print(f"Successful pass: mac_sum:{mac_sum}, mac_sum2:{mac_sum2} i= {i}")
 
+# @cocotb.test()
+# async def test_conv1_checkpooling(dut):
+#   """Test conv1 to see if pooling works."""
+#   clk_i = dut.clk_i
+#   reset_i = dut.reset_i
+
+#   await start_clock_and_reset(dut)
+
+#   await FallingEdge(reset_i)
+#   await FallingEdge(clk_i)
+#   dut.ready_i.value = 1
+
+#   for i in range(120):
+#         dut.data_i.value = 0
+#         dut.valid_i.value = 1
+#         await RisingEdge(clk_i)
+#         dut.valid_i.value = 0
+#         await with_timeout(RisingEdge(dut.valid_o), 1000, 'ns')
+#         await RisingEdge(clk_i)
+  
+
+#   for i in range(256):
+#         dut.data_i.value = i
+#         dut.valid_i.value = 1
+#         await RisingEdge(clk_i)
+#         dut.valid_i.value = 0
+#         await with_timeout(FallingEdge(dut.ready_o),1000,'ns')
+#         #print(f"window0: {int(dut.window0.value)}, filterweight1: {to_signed(int(dut.filterweight1_o.value),8)}")
+#         await RisingEdge(dut.valid_o)
+#         await RisingEdge(clk_i)
+#         await Timer(1000, unit="ps") #for good measure
+  
+
+
 
 
 

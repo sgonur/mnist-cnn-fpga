@@ -1,9 +1,10 @@
 `ifndef BINPATH
- `define BINPATH ""
+ `define BINPATH "/src/weights/"
 `endif
 module ram_1r1w_sync
   #(parameter [31:0] width_p = 8
   ,parameter [31:0] depth_p = 512
+  ,parameter [0:0] init_p = 1
   ,parameter string filename_p = "memory_init_file.bin")
   (input [0:0] clk_i
   ,input [0:0] reset_i
@@ -24,6 +25,9 @@ module ram_1r1w_sync
       // Display depth and width (You will need to match these in your init file)
       $display("%m: depth_p is %d, width_p is %d", depth_p, width_p);
       // wire [bar:0] foo [baz:0];
+      if(init_p) begin // if init_p is 1, use readmemh
+         $readmemh(filename_p,mem , 0, depth_p-1);
+      end
       // In order to get the memory contents in iverilog you need to run this for loop during initialization:
       for (int i = 0; i < depth_p; i++) begin
         $dumpvars(0,mem[i]);

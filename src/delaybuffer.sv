@@ -16,7 +16,7 @@ module delaybuffer
 
   logic [$clog2(delay_p+1)-1:0] wr_ptr, rd_ptr;
 
-  ram_1r1w_sync #(.width_p(width_p), .depth_p(delay_p+1), .filename_p("")) ram_inst (
+  ram_1r1w_sync #(.width_p(width_p), .depth_p(delay_p+1), .filename_p("zeros.mem"),.init_p(1)) ram_inst (
     .clk_i(clk_i),
     .reset_i(reset_i),
     .wr_valid_i(valid_i & ready_o),

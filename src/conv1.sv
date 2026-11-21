@@ -198,6 +198,9 @@ assign window4 = window_w[4];
 
 always_ff @(posedge clk_i) begin
   if(reset_i) begin
+    for(int i = 0; i < 25; i++) begin
+      window_w[i] <= '0;
+    end
   end
   if(valid_i & ready_o) begin //will need the same condition as valid_i in the ram delay buffer
 
