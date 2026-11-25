@@ -12,7 +12,7 @@ help:
 
 # pytest exits 5 when it finds no tests; treat that as a pass for an empty repo.
 test:
-	pytest tests/ -v $(PYTEST_ARGS); rc=$$?; [ $$rc -eq 5 ] && echo "No tests yet." && exit 0; exit $$rc
+	python3 -m pytest tests/ -v $(PYTEST_ARGS); rc=$$?; [ $$rc -eq 5 ] && echo "No tests yet." && exit 0; exit $$rc
 
 lint:
 ifeq ($(strip $(HDL)),)
