@@ -11,8 +11,8 @@ module conv1
     ,output logic [0:0] valid_o
     ,input [0:0] ready_i
     // Just to make our lives easy, we're going to double the output width.
-    ,output [20 : 0] data1_o
-    ,output [20 : 0] data2_o
+    ,output signed [20 : 0] data1_o
+    ,output signed [20 : 0] data2_o
     );
 
 //*---------------------------------------------------------
