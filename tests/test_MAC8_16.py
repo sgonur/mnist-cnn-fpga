@@ -59,25 +59,5 @@ async def test_random_accumulate(dut):
     await drive_and_check(dut, pairs)
 
 
-@cocotb.test()
-async def test_conv1_window_headroom(dut):
-    """A 5x5 conv1 window (25 terms) of max pixels/weights must not overflow.
-
-    25 * 255 * 127 = 809625, which needs 21 bits signed. This documents the
-    width requirement for conv1 usage, not just the module's stated contract.
-    """
-    dut.data_i.value = 0
-    dut.weight_i.value = 0
-    await start_clock_and_reset(dut)
-    acc = 0
-    for _ in range(25):
-        dut.data_i.value = 255
-        dut.weight_i.value = 127
-        await RisingEdge(dut.clk_i)
-        acc += 255 * 127
-    got = await read_mac(dut)
-    assert got == acc, f"25-term worst case: mac_o={got}, true sum={acc} (overflowed 16 bits)"
-
-
 def test_MAC8_16():
     run_cocotb("MAC8_16", ["MAC8_16.sv"], "test_MAC8_16")

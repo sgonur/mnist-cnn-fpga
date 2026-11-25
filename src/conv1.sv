@@ -3,7 +3,7 @@ module conv1
     // This is the number of pixels in each line of the image
      parameter  linewidth_px_p = 28
     ,parameter width_p = 8)
-   (input [0:0] clk_i
+   ( input [0:0] clk_i
     ,input [0:0] reset_i
     ,input [0:0] valid_i
     ,output [0:0] ready_o

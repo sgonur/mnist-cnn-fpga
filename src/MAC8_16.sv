@@ -1,9 +1,9 @@
 module MAC8_16
   (
-    input clk_i,
-    input reset_i,
-    input [7:0] data_i,
-    input signed [7:0] weight_i,
+    input                clk_i,
+    input                reset_i,
+    input [7:0]          data_i,
+    input signed [7:0]   weight_i,
     output signed [15:0] mac_o //we might need to increase the output length
   );
 //*---------------------------------------------------------
