@@ -118,9 +118,10 @@ async def test_conv1_readyvalid(dut):
       mac_sum += int(dut.window22.value) * to_signed(0x5c, 8)
       mac_sum += int(dut.window23.value) * to_signed(0x62, 8)
       mac_sum += int(dut.window24.value) * to_signed(0x4d, 8)
-      #mac_sum += to_signed(0x0060, 16) #bias
+      mac_sum += 0x60 #bias
+      mac_sum = max(mac_sum, 0) #ReLU
       print(f"mac_sum: {mac_sum}")
-      actual_val = to_signed(int(dut.data1_o.value), 16)
+      actual_val = to_signed(int(dut.data1_o.value), 21)
       assert actual_val == mac_sum, f"Output mismatch: expected {mac_sum}, got {actual_val} at time {get_sim_time('ns')} ns"
       print(f"Successful pass: {mac_sum}, i= {i}")
 

@@ -6,6 +6,7 @@ Every test_<module>.py has:
 """
 
 import os
+import shutil
 import random
 from pathlib import Path
 
@@ -33,6 +34,14 @@ def run_cocotb(toplevel, sources, test_module, parameters=None, tag=""):
 
     parameters = parameters or {}
     build_dir = SIM_BUILD / f"{toplevel}{tag}"
+    build_dir.mkdir(parents=True, exist_ok=True)
+
+    weights_src_dir = SRC / "weights"
+    if weights_src_dir.exists():
+        for mem_file in weights_src_dir.glob("*.mem"):
+            shutil.copy(mem_file, build_dir / mem_file.name)
+
+
     runner = get_runner(os.environ.get("SIM", "icarus"))
     runner.build(
         sources=[SRC / s for s in sources],
