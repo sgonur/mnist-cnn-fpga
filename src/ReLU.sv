@@ -12,7 +12,7 @@ module ReLU
 // Description: This module implements the ReLU activation function for a 16-bit signed input, outputting a 16-bit signed result.
 //*---------------------------------------------------------
 
-assign data_o = (data_i[width_p-1] == 1'b1) ? 0' : data_i;
+assign data_o = (data_i[width_p-1] == 1'b1) ? '0 : data_i;
 
 
 
