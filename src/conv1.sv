@@ -8,11 +8,11 @@ module conv1
     ,input [0:0] valid_i
     ,output [0:0] ready_o
     ,input [width_p - 1 : 0] data_i
-    ,output [0:0] valid_o
+    ,output logic [0:0] valid_o
     ,input [0:0] ready_i
     // Just to make our lives easy, we're going to double the output width.
-    ,output [(2 * width_p) - 1 : 0] data1_o
-    ,output [(2 * width_p) - 1 : 0] data2_o
+    ,output signed [20 : 0] data1_o
+    ,output signed [20 : 0] data2_o
     );
 
 //*---------------------------------------------------------
